@@ -28,3 +28,7 @@ Sem gerar o .exe: `abrir.bat` (precisa de `pip install -r requirements.txt` ante
 - Zeros à esquerda (NCM, EAN): célula de texto vai como está; número com formato `00000000` é reconstruído pelo formato; se o Excel guardou só o número, preencha "Zeros" com o tamanho. A coluna do banco tem que ser VARCHAR/CHAR.
 - Números tipo `1.234,56` e datas `dd/mm/aaaa` são convertidos.
 - O programa lembra banco, tabela, usuário e planilha (`config.json` ao lado do .exe). A senha não é salva.
+
+## Licença
+
+MIT. Veja o arquivo `LICENSE`.
