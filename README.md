@@ -6,7 +6,13 @@ Atualiza colunas de uma tabela Firebird com os valores de uma planilha Excel, us
 
 Não precisa de fbclient.dll nem de nada instalado: o driver (`firebirdsql`) fala direto com o servidor pela rede. Funciona com Firebird 2.5, 3, 4 e 5.
 
-## Gerar o .exe (uma vez, num PC com Python)
+## Baixar pronto
+
+Baixe o [`ExBird.exe`](ExBird.exe) (botão Download na página do arquivo) e abra com duplo clique. Não precisa instalar nada. Windows pode mostrar um aviso do SmartScreen por ser um programa novo sem assinatura digital: clique em "Mais informações" e "Executar assim mesmo".
+
+SHA-256: `b7e519b9a8b86ab73784528ef4f646a971eddc5d94835df42153740d6ee192e0`
+
+## Gerar o .exe você mesmo (num PC com Python)
 
 Duplo clique em `gerar_exe.bat`. Sai o `ExBird.exe`, arquivo único. Depois é só copiar o .exe pra qualquer PC e abrir.
 
