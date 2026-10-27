@@ -1,0 +1,8 @@
+.venv/
+dist/
+build/
+__pycache__/
+*.pyc
+*.spec
+config.json
+ExBird.exe
