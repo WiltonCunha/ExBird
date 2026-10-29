@@ -32,6 +32,7 @@ Sem gerar o .exe: `abrir.bat` (precisa de `pip install -r requirements.txt` ante
 - Banco: caminho do .fdb **no servidor**. Se o banco está no próprio PC, host `localhost`.
 - Célula vazia: a linha é pulada. Marque "Célula vazia grava NULL" se quiser o contrário.
 - Zeros à esquerda (NCM, EAN): célula de texto vai como está; número com formato `00000000` é reconstruído pelo formato; se o Excel guardou só o número, preencha "Zeros" com o tamanho. A coluna do banco tem que ser VARCHAR/CHAR.
+- **Proteção contra perda de zero:** antes de gravar, o programa avisa se a coluna do banco é numérica (não guarda zero à esquerda) e para sem gravar nada; avisa também quando o Excel traz o código como número (use "Zeros" ou formate como Texto). Depois de gravar, ele lê de volta os códigos com zero na frente e avisa se o banco ficou com valor diferente (ex: trigger ou regra do ERP mexendo no campo).
 - Números tipo `1.234,56` e datas `dd/mm/aaaa` são convertidos.
 - O programa lembra banco, tabela, usuário e planilha (`config.json` ao lado do .exe). A senha não é salva.
 

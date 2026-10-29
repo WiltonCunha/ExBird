@@ -357,6 +357,12 @@ class App(tk.Tk):
         try:
             headers, rows = core.read_excel(c["path"], c["sheet"])
             self.q.put(("log", f"{len(rows)} linhas lidas do Excel."))
+            bloqueios, avisos = core.check_risks(headers, rows, c["pairs"], c["kinds"], c["pads"])
+            for a in avisos:
+                self.q.put(("log", a))
+            if bloqueios:
+                self.q.put(("fail", "Nada foi gravado.\n\n" + "\n\n".join(bloqueios)))
+                return
             conn = core.open_conn(c["params"])
             try:
                 st = core.run_update(
@@ -388,6 +394,9 @@ class App(tk.Tk):
                         f"Não encontradas: {st['nao_encontradas']} | Puladas: {st['puladas']} | "
                         f"Erros: {st['erros']} | Ref. duplicada: {st['duplicadas']}"
                     )
+                    if st["divergentes"]:
+                        self.log(f"ATENÇÃO: {st['divergentes']} valor(es) ficaram diferentes do Excel no banco. "
+                                 "Veja as linhas acima.")
                     self.log("Nada foi gravado (simulação)." if dry else "Gravado e confirmado no banco.")
                     self._finish()
                 elif m[0] == "fail":

@@ -215,6 +215,40 @@ def convert(v, kind):
     return v
 
 
+# -------------------------------------------------------------- Checagens
+def _perde_zero(v):
+    """Texto só de dígitos com zero na frente, ex: '0300600'."""
+    return isinstance(v, str) and len(v.strip()) > 1 and v.strip().isdigit() and v.strip().startswith("0")
+
+
+def check_risks(headers, rows, pairs, kinds, pads=None):
+    """Procura situações em que o zero à esquerda se perde.
+    Devolve (bloqueios, avisos): listas de textos."""
+    pads = pads or {}
+    bloqueios, avisos = [], []
+    for x, d in pairs:
+        i = headers.index(x)
+        kind = kinds[d]
+        com_zero = [(ln, r[i]) for ln, r in rows if _perde_zero(r[i])]
+        if kind != "str" and com_zero:
+            ln, v = com_zero[0]
+            bloqueios.append(
+                f'A coluna "{d}" do banco é numérica ({kind.split(":")[0]}) e não guarda zero à esquerda: '
+                f'{len(com_zero)} valor(es) da coluna "{x}" do Excel têm zero na frente '
+                f'(ex: linha {ln}: "{v.strip()}" ficaria {int(v.strip())}). '
+                f'Mude a coluna "{d}" para VARCHAR no banco, ou tire essa coluna da atualização.')
+        if kind == "str" and not pads.get(d):
+            soltos = [(ln, r[i]) for ln, r in rows
+                      if isinstance(r[i], (int, float)) and not isinstance(r[i], bool)]
+            if soltos:
+                ln, v = soltos[0]
+                avisos.append(
+                    f'Atenção: "{x}" vem como NÚMERO no Excel em {len(soltos)} linha(s) (ex: linha {ln}: {v:g}). '
+                    f'Se esses códigos tinham zero na frente, preencha "Zeros" ao lado de "{d}" '
+                    f'(ex: 7 para CEST) ou formate a coluna do Excel como Texto.')
+    return bloqueios, avisos
+
+
 # -------------------------------------------------------------- Atualização
 def run_update(conn, table, ref_x, ref_db, pairs, headers, rows, kinds,
                write_null=False, dry=True, log=print, progress=lambda a, b: None,
@@ -240,7 +274,7 @@ def run_update(conn, table, ref_x, ref_db, pairs, headers, rows, kinds,
     sql = f'UPDATE "{table}" SET {sets} WHERE "{ref_db}" = ?'
 
     st = {"total": len(rows), "atualizadas": 0, "nao_encontradas": 0,
-          "puladas": 0, "erros": 0, "duplicadas": 0}
+          "puladas": 0, "erros": 0, "duplicadas": 0, "divergentes": 0}
     cur = conn.cursor()
     mostrados = [0]
 
@@ -271,6 +305,15 @@ def run_update(conn, table, ref_x, ref_db, pairs, headers, rows, kinds,
                     aviso(f"Linha {line}: ref {key} não encontrada no banco")
                 else:
                     st["atualizadas"] += 1
+                    # conferência: lê de volta os códigos com zero na frente e compara
+                    for v, (_, d) in zip(vals, pairs):
+                        if _perde_zero(v):
+                            cur.execute(f'SELECT "{d}" FROM "{table}" WHERE "{ref_db}" = ?', (key,))
+                            got = cur.fetchone()
+                            got = got[0] if got else None
+                            if got is None or str(got).rstrip() != v:
+                                st["divergentes"] += 1
+                                aviso(f'Linha {line} (ref {key}): gravei "{v}" em {d}, mas o banco ficou com "{got}"')
                     if cnt and cnt > 1:
                         st["duplicadas"] += 1
                         aviso(f"Linha {line}: ref {key} atualizou {cnt} registros (referência não é única)")
