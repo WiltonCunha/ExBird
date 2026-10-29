@@ -232,11 +232,10 @@ def check_risks(headers, rows, pairs, kinds, pads=None):
         com_zero = [(ln, r[i]) for ln, r in rows if _perde_zero(r[i])]
         if kind != "str" and com_zero:
             ln, v = com_zero[0]
-            bloqueios.append(
-                f'A coluna "{d}" do banco é numérica ({kind.split(":")[0]}) e não guarda zero à esquerda: '
-                f'{len(com_zero)} valor(es) da coluna "{x}" do Excel têm zero na frente '
-                f'(ex: linha {ln}: "{v.strip()}" ficaria {int(v.strip())}). '
-                f'Mude a coluna "{d}" para VARCHAR no banco, ou tire essa coluna da atualização.')
+            avisos.append(
+                f'Aviso: a coluna "{d}" do banco é numérica ({kind.split(":")[0]}) e não guarda zero à esquerda. '
+                f'{len(com_zero)} valor(es) de "{x}" têm zero na frente e serão gravados sem ele '
+                f'(ex: linha {ln}: "{v.strip()}" vira {int(v.strip())}). É o mesmo que o próprio banco faz.')
         if kind == "str" and not pads.get(d):
             soltos = [(ln, r[i]) for ln, r in rows
                       if isinstance(r[i], (int, float)) and not isinstance(r[i], bool)]
