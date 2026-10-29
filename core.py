@@ -285,6 +285,24 @@ def run_update(conn, table, ref_x, ref_db, pairs, headers, rows, kinds,
             log("... (demais avisos omitidos, veja o resumo no final)")
         mostrados[0] += 1
 
+    # amostra do que será gravado (ajuda a achar de onde some o zero à esquerda)
+    rotulo = {"int": "inteiro", "float": "decimal", "str": "texto", "date": "data", "ts": "data/hora"}
+    log("Tipo das colunas do banco: " + ", ".join(
+        f"{d}={'decimal' if kinds[d].startswith('dec') else rotulo.get(kinds[d], kinds[d])}" for _, d in pairs))
+    mostradas = 0
+    for line, row in rows:
+        if mostradas >= 3:
+            break
+        try:
+            if any(row[i] is not None for i in ix_vals):
+                for i, (x, d) in zip(ix_vals, pairs):
+                    orig = row[i]
+                    log(f"Amostra linha {line}: {x} lido do Excel = {orig!r} ({type(orig).__name__})"
+                        f"  ->  vai gravar em {d} = {conv(orig, d)!r}")
+                mostradas += 1
+        except Exception:
+            pass
+
     try:
         for n, (line, row) in enumerate(rows, 1):
             try:
